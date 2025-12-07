@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WingMan - Your AI Dating Buddy
+
+Behind every great relationship is a supportive wingman. WingMan is an AI-powered web application that helps you plan unforgettable dates, track your dating journey, and make every moment count.
+
+## Features
+
+- **AI Wingman Chat**: Chat with Claude AI to get personalized date ideas based on your preferences and profile
+- **Smart Date Planning**: Create and manage date plans with integrated location services
+- **Google Maps Integration**: Find perfect date spots with real-time map integration
+- **PDF Export**: Export your date plans to beautiful PDFs you can save or share
+- **Progress Tracking**: Save favorite dates, rate experiences, and track your dating journey
+
+## Tech Stack
+
+### Frontend
+
+- **Next.js 16** - React framework with App Router
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS v4** - Styling
+- **Lucide React** - Icons
+
+### State Management
+
+- **Zustand** - Lightweight state management
+- **Jotai** - Atomic state management (optional)
+
+### AI & APIs
+
+- **Anthropic AI SDK** - Claude AI integration for chat
+- **Google Maps API** - Location and mapping services
+
+### PDF Generation
+
+- **@react-pdf/renderer** - PDF generation and export
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+ installed
+- API Keys for:
+  - Anthropic (Claude AI)
+  - Google Maps
+
+### Installation
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Set up environment variables:
+
+```bash
+cp .env.local.example .env.local
+```
+
+3. Edit `.env.local` and add your API keys:
+
+```env
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+```
+
+### Running the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+wing-man/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── chat/              # AI chat interface
+│   ├── dates/             # Date management pages
+│   ├── profile/           # User profile pages
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
+├── components/            # React components
+├── lib/                   # Utilities and configurations
+│   ├── api/              # API integrations
+│   │   ├── anthropic.ts  # Claude AI integration
+│   │   └── googleMaps.ts # Google Maps API
+│   ├── store/            # State management
+│   │   ├── dateStore.ts  # Date plans store
+│   │   └── userStore.ts  # User profile store
+│   └── pdf/              # PDF generation
+│       └── generateDatePlan.tsx
+└── public/               # Static assets
+```
 
-## Learn More
+## API Setup
 
-To learn more about Next.js, take a look at the following resources:
+### Anthropic API
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Sign up at [console.anthropic.com](https://console.anthropic.com)
+2. Create an API key
+3. Add to `.env.local` as `ANTHROPIC_API_KEY`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Google Maps API
 
-## Deploy on Vercel
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Enable Maps JavaScript API and Places API
+3. Create credentials (API Key)
+4. Add to `.env.local` as `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Start Production Server
+
+```bash
+npm start
+```
+
+### Linting
+
+```bash
+npm run lint
+```
+
+## Features to Implement
+
+- [ ] User authentication
+- [ ] AI chat interface with Claude
+- [ ] Date planning form
+- [ ] Google Maps integration
+- [ ] Date history and rating system
+- [ ] PDF export functionality
+- [ ] User profile management
+- [ ] Responsive design improvements
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
