@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// auth... 
+model User {
+  id        String   @id @default(cuid()) 
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   Profile?
+  datePlans DatePlan[]
+}
+
+// User profile with preferences
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Personal preferences
+  location  String?
+  interests String?  // Store as JSON string: '["hiking", "movies"]'
+  budget    String?  // "low", "medium", "high"
+  dietaryRestrictions String? // Store as JSON string: '["vegetarian", "gluten-free"]'
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Date plan history
+model DatePlan {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Date plan details
+  title     String
+  query     String   // Original user question
+  response  String   // AI-generated response
+
+  // Metadata
+  favorite  Boolean  @default(false)
+  completed Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
