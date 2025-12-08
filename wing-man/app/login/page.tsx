@@ -68,13 +68,16 @@ export default function LoginPage() {
             onClick={() => window.location.href = '/'}
             className="w-full px-6 py-4 bg-gray-100 border-4 border-black hover:bg-gray-200 transition-colors font-mono font-bold uppercase"
           >
-            Continue as Guest
+            Create an Account
           </button>
         </div>
 
         {/* Footer Text */}
         <p className="text-center text-sm text-gray-600 mt-6 font-mono">
-          By signing in, you agree to our Terms & Privacy Policy
+          By signing in, you agree to our {' '}
+          <a href="/ToS" className="underline hover:text-black">
+            Terms of Services
+          </a>
         </p>
       </div>
     </div>

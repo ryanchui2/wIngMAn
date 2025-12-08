@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [message, setMessage] = useState('');
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,6 +16,12 @@ export default function Home() {
     e.preventDefault();
 
     if (!message.trim()) return;
+
+    // Check if user is logged in
+    if (!session) {
+      router.push('/login');
+      return;
+    }
 
     setLoading(true);
     setReply('');
