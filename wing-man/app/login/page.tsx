@@ -22,6 +22,7 @@ export default function LoginPage() {
           </h2>
 
           <p className="text-center text-gray-600">
+            You are currently a guest user.
             Sign in to save your date plans and preferences
           </p>
 
@@ -49,26 +50,6 @@ export default function LoginPage() {
               />
             </svg>
             Continue with Google
-          </button>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t-2 border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500 font-mono">
-                OR
-              </span>
-            </div>
-          </div>
-
-          {/* Guest Continue Button */}
-          <button
-            onClick={() => window.location.href = '/'}
-            className="w-full px-6 py-4 bg-gray-100 border-4 border-black hover:bg-gray-200 transition-colors font-mono font-bold uppercase"
-          >
-            Create an Account
           </button>
         </div>
 

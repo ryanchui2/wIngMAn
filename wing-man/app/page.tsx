@@ -1,25 +1,70 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import ProfilePopup from './components/ProfilePopup';
+import WelcomeScreen from './components/WelcomeScreen';
 
 export default function Home() {
-  const { data: session } = useSession();
-  const router = useRouter();
+  const { data: session, status } = useSession();
   const [message, setMessage] = useState('');
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [hasToken, setHasToken] = useState(false);
+  const guestTokenCreated = useRef(false);
+
+  // Check if user has auth or guest token on mount
+  useEffect(() => {
+    const checkToken = async () => {
+      // If authenticated, they have access
+      if (session) {
+        setHasToken(true);
+        setShowWelcome(false);
+        return;
+      }
+
+      // Check if they have a guest token cookie
+      try {
+        const response = await fetch('/api/check-token');
+        const data = await response.json();
+        if (data.hasToken) {
+          setHasToken(true);
+          setShowWelcome(false);
+          guestTokenCreated.current = true;
+        }
+      } catch (error) {
+        console.error('Failed to check token:', error);
+      }
+    };
+
+    // Only check when session loading is complete
+    if (status !== 'loading') {
+      checkToken();
+    }
+  }, [session, status]);
+
+  const handleGuestContinue = async () => {
+    try {
+      await fetch('/api/guest', { method: 'POST' });
+      guestTokenCreated.current = true;
+      setHasToken(true);
+      setShowWelcome(false);
+    } catch (error) {
+      console.error('Failed to create guest session:', error);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!message.trim()) return;
 
-    // Check if user is logged in
-    if (!session) {
-      router.push('/login');
+    // Block if no token
+    if (!session && !hasToken) {
+      setShowWelcome(true);
       return;
     }
 
@@ -49,6 +94,11 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  // Show welcome screen if no token
+  if (showWelcome) {
+    return <WelcomeScreen onGuestContinue={handleGuestContinue} />;
+  }
 
   return (
     <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-[#e2c0d7] to-white">
@@ -140,9 +190,12 @@ export default function Home() {
             <a href="#" className="hover:underline font-bold">
               Dates
             </a>
-            <a href="#" className="hover:underline font-bold">
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              className="hover:underline font-bold"
+            >
               Profile
-            </a>
+            </button>
             <a href="#" className="hover:underline font-bold">
               History
             </a>
@@ -152,6 +205,9 @@ export default function Home() {
           </nav>
         </div>
       </footer>
+
+      {/* Profile Popup */}
+      <ProfilePopup isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </div>
   );
 }
