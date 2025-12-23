@@ -46,16 +46,17 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// auth... 
+// auth...
 model User {
-  id        String   @id @default(cuid()) 
+  id        String   @id @default(cuid())
   email     String   @unique
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profile   Profile?
-  datePlans DatePlan[]
+  profile       Profile?
+  datePlans     DatePlan[]
+  conversations Conversation[]
 
   emailVerified DateTime?
   image         String?
@@ -73,6 +74,8 @@ model Profile {
   location  String?
   interests String?  // Store as JSON string: '["hiking", "movies"]'
   budget    String?  // "low", "medium", "high"
+  outdoor   Boolean?
+  social    Boolean?
   dietaryRestrictions String? // Store as JSON string: '["vegetarian", "gluten-free"]'
 
   createdAt DateTime @default(now())
@@ -98,5 +101,35 @@ model DatePlan {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([createdAt])
+}
+
+// Chat conversation history
+model Conversation {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title    String   @default("New Conversation")
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role    String // "user" | "assistant"
+  content String
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
   @@index([createdAt])
 }
