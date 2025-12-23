@@ -13,6 +13,7 @@ export default function Home() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [hasToken, setHasToken] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const guestTokenCreated = useRef(false);
 
   // Check if user has auth or guest token on mount
@@ -77,13 +78,20 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({
+          message,
+          conversationId
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setReply(data.reply);
+        // Save conversation ID for future messages
+        if (data.conversationId) {
+          setConversationId(data.conversationId);
+        }
       } else {
         setReply('Error: ' + (data.error || 'Failed to get response'));
       }
@@ -192,9 +200,9 @@ export default function Home() {
             <Link href="/profile" className="hover:underline font-bold">
               Profile
             </Link>
-            <a href="#" className="hover:underline font-bold">
+            <Link href="/history" className="hover:underline font-bold">
               History
-            </a>
+            </Link>
             <a href="#" className="hover:underline font-bold">
               About
             </a>
