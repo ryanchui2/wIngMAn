@@ -102,37 +102,42 @@ export default function HistoryPage() {
             {conversations.map((conversation) => (
               <div
                 key={conversation.id}
-                className="bg-white border-4 border-black p-6 hover:bg-gray-50 transition-colors"
+                className="bg-white border-4 border-black hover:bg-gray-50 transition-colors p-6"
               >
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold mb-2 font-mono">
-                      {conversation.title}
-                    </h2>
-                    <p className="text-sm text-gray-600 font-mono">
-                      {conversation.messages.length} message{conversation.messages.length !== 1 ? 's' : ''}
-                    </p>
+                <Link
+                  href={`/?conversationId=${conversation.id}`}
+                  className="block"
+                >
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-xl font-bold mb-2 font-mono break-words">
+                        {conversation.title}
+                      </h2>
+                      <p className="text-sm text-gray-600 font-mono">
+                        {conversation.messages.length} message{conversation.messages.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-gray-500 font-mono uppercase whitespace-nowrap">
+                        {new Date(conversation.updatedAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-400 font-mono whitespace-nowrap">
+                        {new Date(conversation.updatedAt).toLocaleTimeString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500 font-mono uppercase">
-                      {new Date(conversation.updatedAt).toLocaleDateString()}
-                    </p>
-                    <p className="text-xs text-gray-400 font-mono">
-                      {new Date(conversation.updatedAt).toLocaleTimeString()}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Preview first message */}
-                {conversation.messages.length > 0 && (
-                  <div className="mt-4 pt-4 border-t-2 border-gray-200">
-                    <p className="text-sm text-gray-700 truncate">
-                      {conversation.messages[1].content.length > 100
-                        ? conversation.messages[1].content.slice(0, 167) + '...'
-                        : conversation.messages[1].content}
-                    </p>
-                  </div>
-                )}
+                  {/* Preview first message */}
+                  {conversation.messages.length > 0 && (
+                    <div className="mt-4 pt-4 border-t-2 border-gray-200">
+                      <p className="text-sm text-gray-700 line-clamp-1">
+                        {conversation.messages[0].content.length > 100
+                          ? conversation.messages[0].content.slice(0, 100) + '...'
+                          : conversation.messages[0].content}
+                      </p>
+                    </div>
+                  )}
+                </Link>
               </div>
             ))}
           </div>

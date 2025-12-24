@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import WelcomeScreen from './components/WelcomeScreen';
 import Link from 'next/link';
 
@@ -12,6 +13,7 @@ interface ChatMessage {
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -20,6 +22,8 @@ export default function Home() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const guestTokenCreated = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const conversationLoaded = useRef(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   // Check if user has auth or guest token on mount
   useEffect(() => {
@@ -75,6 +79,9 @@ export default function Home() {
 
     const userMessage = message;
 
+    // Reset delete confirmation when sending a new message
+    setDeleteConfirm(false);
+
     // Add user message to chat immediately
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
     setMessage('');
@@ -110,6 +117,44 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  // Load conversation from URL parameter
+  useEffect(() => {
+    const loadConversation = async () => {
+      const conversationIdParam = searchParams.get('conversationId');
+
+      if (conversationIdParam && session?.user?.email && !conversationLoaded.current) {
+        conversationLoaded.current = true;
+
+        try {
+          const response = await fetch('/api/conversations');
+          const data = await response.json();
+
+          if (response.ok) {
+            const conversation = data.conversations.find(
+              (c: { id: string; messages: { role: string; content: string }[] }) => c.id === conversationIdParam
+            );
+
+            if (conversation) {
+              setConversationId(conversation.id);
+              setMessages(
+                conversation.messages.map((msg: { role: string; content: string }) => ({
+                  role: msg.role as 'user' | 'assistant',
+                  content: msg.content,
+                }))
+              );
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load conversation:', error);
+        }
+      }
+    };
+
+    if (session && !showWelcome) {
+      loadConversation();
+    }
+  }, [searchParams, session, showWelcome]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -190,17 +235,56 @@ export default function Home() {
                   {loading ? 'cooking...' : messages.length > 0 ? 'send' : 'ask wingman'}
                 </button>
                 {messages.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMessages([]);
-                      setConversationId(null);
-                      setMessage('');
-                    }}
-                    className="px-4 py-3 text-base md:text-lg bg-white text-black border-4 border-black font-mono uppercase tracking-wider hover:bg-black hover:text-white transition-colors font-bold"
-                  >
-                    new chat
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMessages([]);
+                        setConversationId(null);
+                        setMessage('');
+                        setDeleteConfirm(false);
+                      }}
+                      className="px-4 py-3 text-base md:text-lg bg-white text-black border-4 border-black font-mono uppercase tracking-wider hover:bg-black hover:text-white transition-colors font-bold"
+                    >
+                      new chat
+                    </button>
+                    {conversationId && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!deleteConfirm) {
+                            setDeleteConfirm(true);
+                            return;
+                          }
+
+                          // Second click - actually delete
+                          try {
+                            const response = await fetch(`/api/conversations/${conversationId}`, {
+                              method: 'DELETE',
+                            });
+
+                            if (response.ok) {
+                              setMessages([]);
+                              setConversationId(null);
+                              setMessage('');
+                              setDeleteConfirm(false);
+                            } else {
+                              alert('Failed to delete conversation');
+                              setDeleteConfirm(false);
+                            }
+                          } catch (error) {
+                            console.error('Error deleting conversation:', error);
+                            alert('Failed to delete conversation');
+                            setDeleteConfirm(false);
+                          }
+                        }}
+                        className="px-4 py-3 text-base md:text-lg bg-white text-black border-4 border-black font-mono uppercase tracking-wider hover:bg-black hover:text-white transition-colors font-bold"
+                      >
+                        {/* TODO: update button styling */}
+                        {deleteConfirm ? 'sure ?' : 'delete'}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </form>
