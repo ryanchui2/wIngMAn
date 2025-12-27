@@ -198,11 +198,15 @@ export default function Home() {
                     key={index}
                     className={`p-4 border-4 border-black ${
                       msg.role === 'user'
-                        ? 'bg-black text-white'
-                        : 'bg-white text-black'
+                        ? 'bg-black'
+                        : 'bg-white'
                     }`}
                   >
-                    <div className="text-sm md:text-base leading-relaxed prose prose-sm md:prose-base max-w-none prose-invert:text-white prose-headings:font-bold prose-a:text-blue-600 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-white">
+                    <div className={`text-sm md:text-base leading-relaxed prose prose-sm md:prose-base max-w-none ${
+                      msg.role === 'user'
+                        ? 'prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-code:bg-gray-800 prose-code:text-white'
+                        : 'prose-headings:font-bold prose-a:text-blue-600 prose-code:bg-gray-100 prose-code:px-1'
+                    } prose-code:px-1 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-white`}>
                       <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                         {msg.content}
                       </ReactMarkdown>

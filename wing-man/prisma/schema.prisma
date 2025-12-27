@@ -70,13 +70,26 @@ model Profile {
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Personal preferences
+  // Personal info
+  age       Int?
   location  String?
-  interests String?  // Store as JSON string: '["hiking", "movies"]'
+  gender    String?
+
+  // Dating preferences
+  interests String?  // Hobbies, activities they enjoy
+  datingGoals String? // What they're looking for (casual, serious, friends, etc.)
+  datingStyle String? // Their approach to dating
+
+  // Budget & preferences
   budget    String?  // "low", "medium", "high"
   outdoor   Boolean?
   social    Boolean?
-  dietaryRestrictions String? // Store as JSON string: '["vegetarian", "gluten-free"]'
+
+  // Dietary & lifestyle
+  dietaryRestrictions String?
+
+  // Additional context for AI
+  additionalNotes String? // Free-form text for any extra context
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

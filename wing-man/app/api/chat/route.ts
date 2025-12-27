@@ -27,34 +27,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch conversation history if conversationId exists
+    // Fetch user profile and conversation history if logged in
+    let userProfile = null;
     let conversationHistory: { role: 'user' | 'assistant'; content: string }[] = [];
-    if (conversationId && session?.user?.email) {
+
+    if (session?.user?.email) {
       const user = await prisma.user.findUnique({
         where: { email: session.user.email },
+        include: { profile: true },
       });
 
       if (user) {
-        const conversation = await prisma.conversation.findFirst({
-          where: { id: conversationId, userId: user.id },
-          include: {
-            messages: {
-              orderBy: { createdAt: 'asc' },
-            },
-          },
-        });
+        userProfile = user.profile;
 
-        if (conversation) {
-          conversationHistory = conversation.messages.map((msg) => ({
-            role: msg.role as 'user' | 'assistant',
-            content: msg.content,
-          }));
+        // Fetch conversation history if conversationId exists
+        if (conversationId) {
+          const conversation = await prisma.conversation.findFirst({
+            where: { id: conversationId, userId: user.id },
+            include: {
+              messages: {
+                orderBy: { createdAt: 'asc' },
+              },
+            },
+          });
+
+          if (conversation) {
+            conversationHistory = conversation.messages.map((msg) => ({
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+            }));
+          }
         }
       }
     }
 
-    // Generate AI response with conversation history
-    const reply = await generateChatResponse(message, conversationHistory);
+    // Generate AI response with conversation history and user profile
+    const reply = await generateChatResponse(message, conversationHistory, userProfile);
 
     // Save to database if user is logged in
     let savedConversationId = conversationId;
