@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import CreateDatePopup from '../components/CreateDatePopup';
 
 interface Message {
   id: string;
@@ -25,6 +26,8 @@ export default function HistoryPage() {
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDatePopup, setShowDatePopup] = useState(false);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -56,6 +59,32 @@ export default function HistoryPage() {
       fetchConversations();
     }
   }, [session]);
+
+  const handleCreateDate = async (name: string) => {
+    try {
+      const response = await fetch('/api/dates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          conversationId: selectedConversationId,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Redirect to dates page to see the newly created date
+        router.push('/dates');
+      } else {
+        alert('Failed to create date');
+      }
+    } catch (error) {
+      console.error('Failed to create date:', error);
+      alert('Failed to create date');
+    }
+  };
 
   // Show loading state
   if (status === 'loading' || loading) {
@@ -102,11 +131,11 @@ export default function HistoryPage() {
             {conversations.map((conversation) => (
               <div
                 key={conversation.id}
-                className="bg-white border-4 border-black hover:bg-gray-50 transition-colors p-6"
+                className="bg-white border-4 border-black p-6"
               >
                 <Link
                   href={`/?conversationId=${conversation.id}`}
-                  className="block"
+                  className="block hover:opacity-80 transition-opacity"
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1 min-w-0">
@@ -138,11 +167,36 @@ export default function HistoryPage() {
                     </div>
                   )}
                 </Link>
+
+                {/* Create Date Button */}
+                <div className="mt-4 pt-4 border-t-2 border-gray-200">
+                  <button
+                    onClick={() => {
+                      setSelectedConversationId(conversation.id);
+                      setShowDatePopup(true);
+                    }}
+                    className="block w-full px-4 py-3 bg-black text-white border-4 border-black hover:bg-white hover:text-black transition-colors font-mono font-bold uppercase text-center text-sm"
+                  >
+                    Date
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Create Date Popup */}
+      {showDatePopup && (
+        <CreateDatePopup
+          conversationId={selectedConversationId || undefined}
+          onClose={() => {
+            setShowDatePopup(false);
+            setSelectedConversationId(null);
+          }}
+          onConfirm={handleCreateDate}
+        />
+      )}
     </div>
   );
 }
