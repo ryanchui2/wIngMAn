@@ -57,6 +57,7 @@ model User {
   profile       Profile?
   datePlans     DatePlan[]
   conversations Conversation[]
+  dates         Date[]
 
   emailVerified DateTime?
   image         String?
@@ -126,11 +127,16 @@ model Conversation {
   title    String   @default("New Conversation")
   messages Message[]
 
+  // Link to date (optional)
+  dateId String?
+  date   Date?   @relation(fields: [dateId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([createdAt])
+  @@index([dateId])
 }
 
 model Message {
@@ -144,5 +150,26 @@ model Message {
   createdAt DateTime @default(now())
 
   @@index([conversationId])
+  @@index([createdAt])
+}
+
+model Date {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name String // User-provided name for the date
+
+  // Rating and feedback
+  rating Int? // 1-5 stars, null if not rated yet
+  notes  String? // Optional notes about how the date went
+
+  // One-to-many relationship with conversations
+  conversations Conversation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
   @@index([createdAt])
 }
