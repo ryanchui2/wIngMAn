@@ -3,15 +3,40 @@ import { generateChatResponse } from '@/lib/api/anthropic';
 import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { GUEST_LIMITS } from '@/lib/guestLimits';
 
 export async function POST(req: NextRequest) {
   try {
     // Check if user is authenticated OR has a valid guest token
     const session = await auth();
     const cookieStore = await cookies();
-    const guestToken = cookieStore.get('guest_token');
+    const guestCookie = cookieStore.get(GUEST_LIMITS.COOKIE_NAME);
 
-    if (!session && !guestToken) {
+    // For guest users, check message limit
+    let isGuest = false;
+    let guestSessionData = null;
+
+    if (!session && guestCookie) {
+      isGuest = true;
+      try {
+        guestSessionData = JSON.parse(guestCookie.value);
+
+        // Check if guest has exceeded message limit
+        if (guestSessionData.messagesUsed >= GUEST_LIMITS.MAX_MESSAGES) {
+          return NextResponse.json(
+            { error: `Guest limit reached. You've used all ${GUEST_LIMITS.MAX_MESSAGES} messages. Please sign in to continue.` },
+            { status: 403 }
+          );
+        }
+      } catch (parseError) {
+        return NextResponse.json(
+          { error: 'Invalid guest session' },
+          { status: 401 }
+        );
+      }
+    }
+
+    if (!session && !guestCookie) {
       return NextResponse.json(
         { error: 'Unauthorized. Please log in or use as guest.' },
         { status: 401 }
@@ -140,9 +165,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Increment guest message counter if guest user
+    if (isGuest && guestSessionData) {
+      guestSessionData.messagesUsed += 1;
+      cookieStore.set(GUEST_LIMITS.COOKIE_NAME, JSON.stringify(guestSessionData), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: GUEST_LIMITS.SESSION_DURATION,
+        path: '/',
+      });
+    }
+
     return NextResponse.json({
       reply,
-      isGuest: !session && !!guestToken,
+      isGuest,
+      messagesRemaining: isGuest && guestSessionData
+        ? GUEST_LIMITS.MAX_MESSAGES - guestSessionData.messagesUsed
+        : null,
       conversationId: savedConversationId,
     });
   } catch (error) {

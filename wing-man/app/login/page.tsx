@@ -1,8 +1,11 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const handleGoogleSignIn = () => {
     signIn('google', { callbackUrl: '/' });
   };
@@ -10,6 +13,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e2c0d7] to-white px-8">
       <div className="w-full max-w-md">
+        {/* Back Button */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.push('/')}
+            className="inline-flex items-center gap-2 text-black hover:underline font-mono font-bold uppercase text-sm"
+          >
+            ← Back to Home
+          </button>
+        </div>
+
         {/* Logo/Title */}
         <h1 className="text-6xl md:text-7xl font-black text-center mb-12 text-black tracking-tighter">
           WINGMAN

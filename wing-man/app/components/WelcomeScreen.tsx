@@ -52,13 +52,13 @@ export default function WelcomeScreen({ onGuestContinue }: WelcomeScreenProps) {
             onClick={onGuestContinue}
             className="w-full px-6 py-4 bg-gray-100 border-4 border-black hover:bg-gray-200 transition-colors font-mono font-bold uppercase tracking-wider"
           >
-            Continue as Guest
+            Continue as Guest (5 messages)
           </button>
         </div>
 
         {/* Footer Text */}
         <p className="text-center text-sm text-gray-600 font-mono">
-          Guests can use the service for 1 hour without saving history
+          Guests get 5 free messages. Sign in to save history and get unlimited access.
         </p>
       </div>
     </div>

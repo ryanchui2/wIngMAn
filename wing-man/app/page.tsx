@@ -27,6 +27,8 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversationLoaded = useRef(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [messagesRemaining, setMessagesRemaining] = useState<number | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
 
   // Check if user has auth or guest token on mount
   useEffect(() => {
@@ -35,6 +37,8 @@ export default function Home() {
       if (session) {
         setHasToken(true);
         setShowWelcome(false);
+        setIsGuest(false);
+        setMessagesRemaining(null);
         return;
       }
 
@@ -46,6 +50,8 @@ export default function Home() {
           setHasToken(true);
           setShowWelcome(false);
           guestTokenCreated.current = true;
+          setIsGuest(data.type === 'guest');
+          setMessagesRemaining(data.messagesRemaining);
         }
       } catch (error) {
         console.error('Failed to check token:', error);
@@ -60,10 +66,13 @@ export default function Home() {
 
   const handleGuestContinue = async () => {
     try {
-      await fetch('/api/guest', { method: 'POST' });
+      const response = await fetch('/api/guest', { method: 'POST' });
+      const data = await response.json();
       guestTokenCreated.current = true;
       setHasToken(true);
       setShowWelcome(false);
+      setIsGuest(true);
+      setMessagesRemaining(data.messagesRemaining);
     } catch (error) {
       console.error('Failed to create guest session:', error);
     }
@@ -111,8 +120,18 @@ export default function Home() {
         if (data.conversationId) {
           setConversationId(data.conversationId);
         }
+        // Update messages remaining for guest users
+        if (data.messagesRemaining !== null && data.messagesRemaining !== undefined) {
+          setMessagesRemaining(data.messagesRemaining);
+        }
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', content: 'Error: ' + (data.error || 'Failed to get response') }]);
+        // Show error message
+        const errorMessage = data.error || 'Failed to get response';
+        setMessages((prev) => [...prev, { role: 'assistant', content: 'Error: ' + errorMessage }]);
+        // If guest limit reached, show alert
+        if (response.status === 403) {
+          alert(errorMessage);
+        }
       }
     } catch (error) {
       setMessages((prev) => [...prev, { role: 'assistant', content: 'Error: Failed to connect to server' }]);
@@ -219,6 +238,21 @@ export default function Home() {
                   </div>
                 )}
                 <div ref={messagesEndRef} />
+              </div>
+            )}
+
+            {/* Guest Message Counter */}
+            {isGuest && messagesRemaining !== null && (
+              <div className="mb-2 text-center">
+                <p className="text-sm font-mono text-gray-600">
+                  {messagesRemaining > 0 ? (
+                    <>
+                      <span className="font-bold">{messagesRemaining}</span> message{messagesRemaining !== 1 ? 's' : ''} remaining as guest
+                    </>
+                  ) : (
+                    <span className="text-red-600 font-bold">Limit reached. Please sign in to continue.</span>
+                  )}
+                </p>
               </div>
             )}
 
